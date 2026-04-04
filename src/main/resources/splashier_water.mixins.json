@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "io.github.dennisochulor.splashier_water.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "AbstractArrowMixin",
+    "AbstractThrownPotionMixin",
+    "AreaEffectCloudMixin",
+    "EntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

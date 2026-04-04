@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "splashier_water",
+	"version": "${version}",
+	"name": "Splashier Water",
+	"description": "Better water splash/lingering potions and arrows.",
+	"authors": [
+		"Ninjaking312"
+	],
+	"contact": {
+		"sources": "https://github.com/DennisOchulor/SplashierWater",
+		"issues": "https://gist.github.com/DennisOchulor/3882fbed8efcffcc61b60db49a2ecc4c",
+		"homepage": "https://modrinth.com/mod/splashier_water"
+	},
+	"license": "MIT",
+	"icon": "assets/splashier_water/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"io.github.dennisochulor.splashier_water.SplashierWater"
+		]
+	},
+	"mixins": [
+		"splashier_water.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": ">=26.1",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
