@@ -1,13 +1,14 @@
 package io.github.dennisochulor.splashier_water.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.PotionTags;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.AbstractThrownPotion;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,19 +26,24 @@ public abstract class AbstractThrownPotionMixin {
 	protected abstract void onHitAsPotion(ServerLevel level, ItemStack potionItem, HitResult hitResult);
 
 	@Shadow
-	protected abstract void dowseFire(BlockPos pos);
+	protected abstract void douseFire(BlockPos pos);
 
-	@Inject(method = "onHit", at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/entity/projectile/throwableitemprojectile/AbstractThrownPotion;onHitAsWater(Lnet/minecraft/server/level/ServerLevel;)V"))
-	private void init(HitResult hitResult, CallbackInfo ci, @Local(name = "level") ServerLevel level,
-					  @Local(name = "potionItemStack") ItemStack potionItemStack) {
-		onHitAsPotion(level, potionItemStack, hitResult);
+	@ModifyExpressionValue(method = "onHit", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/alchemy/PotionContents;hasEffects()Z"))
+	private boolean waterHitAsPotionToo(boolean original, @Local(name = "level") ServerLevel level,
+						 @Local(name = "potionItemStack") ItemStack potionItemStack,
+						 @Local(argsOnly = true, name = "hitResult") HitResult hitResult,
+						 @Local(name = "potion") PotionContents potion) {
+		if (!original && potion.is(PotionTags.DOUSES_FIRE)) {
+			onHitAsPotion(level, potionItemStack, hitResult);
+		}
+
+		return original;
 	}
 
 	@Inject(method = "onHitBlock", at = @At(value = "INVOKE", ordinal = 0,
-			target = "Lnet/minecraft/world/entity/projectile/throwableitemprojectile/AbstractThrownPotion;dowseFire(Lnet/minecraft/core/BlockPos;)V"), cancellable = true)
-	private void dowseFire$3x3x2(BlockHitResult hitResult, CallbackInfo ci, @Local(name = "potion") PotionContents potion) {
-		if (!potion.is(Potions.WATER)) return;
+			target = "Lnet/minecraft/world/entity/projectile/throwableitemprojectile/AbstractThrownPotion;douseFire(Lnet/minecraft/core/BlockPos;)V"), cancellable = true)
+	private void douseFire$3x3x2(BlockHitResult hitResult, CallbackInfo ci, @Local(name = "potion") PotionContents potion) {
+		if (!potion.is(PotionTags.DOUSES_FIRE)) return;
 
 		BlockPos hitPos = hitResult.getBlockPos();
 		Direction hitDirection = hitResult.getDirection();
@@ -57,7 +63,7 @@ public abstract class AbstractThrownPotionMixin {
 			corner2 = hitPos.below().relative(threeLongAxis, -1).relative(hitDirection);
 		}
 
-		BlockPos.betweenClosedStream(corner1, corner2).forEach(this::dowseFire);
+		BlockPos.betweenClosedStream(corner1, corner2).forEach(this::douseFire);
 		ci.cancel();
 	}
 }

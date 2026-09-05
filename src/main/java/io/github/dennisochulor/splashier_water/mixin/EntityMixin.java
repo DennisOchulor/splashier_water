@@ -2,10 +2,10 @@ package io.github.dennisochulor.splashier_water.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.tags.PotionTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.item.alchemy.Potions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -18,7 +18,7 @@ public class EntityMixin {
         if (thisEntity instanceof Arrow arrow) {
             PotionContents potionContents = arrow.getPickupItemStackOrigin().get(DataComponents.POTION_CONTENTS);
 
-            if (potionContents != null && potionContents.is(Potions.WATER)) {
+            if (potionContents != null && potionContents.is(PotionTags.DOUSES_FIRE)) {
                 return true;
             }
         }

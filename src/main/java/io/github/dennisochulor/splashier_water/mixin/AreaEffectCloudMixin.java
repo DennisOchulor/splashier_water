@@ -2,14 +2,15 @@ package io.github.dennisochulor.splashier_water.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
+import io.github.dennisochulor.splashier_water.SplashierWater;
 import io.github.dennisochulor.splashier_water.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.PotionTags;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.item.alchemy.Potions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,27 +27,26 @@ public abstract class AreaEffectCloudMixin {
     private PotionContents potionContents;
 
     @Inject(method = "serverTick", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
-    private void serverTick$entity(ServerLevel serverLevel, CallbackInfo ci, @Local(name = "entity") LivingEntity entity) {
-        if (!potionContents.is(Potions.WATER)) return;
-
-        Util.affectEntityWithWater(serverLevel, entity, (AreaEffectCloud) (Object) this, getOwner());
+    private void serverTick$entity(ServerLevel serverLevel, CallbackInfo ci,
+                                   @Local(name = "entity") LivingEntity entity) {
+        Util.affectEntityWithWater(serverLevel, entity, (AreaEffectCloud) (Object) this, getOwner(), potionContents);
     }
 
     @ModifyExpressionValue(method = "serverTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/alchemy/PotionContents;hasEffects()Z"))
     private boolean serverTick$hasEffects(boolean original) {
-        return potionContents.is(Potions.WATER) || original;
+        return SplashierWater.AFFECTS_ENTITY.test(potionContents) || original;
     }
 
     @ModifyExpressionValue(method = "serverTick", at = @At(value = "INVOKE", target = "Ljava/util/stream/Stream;noneMatch(Ljava/util/function/Predicate;)Z"))
     private boolean serverTick$noneMatch(boolean original) {
-        return !potionContents.is(Potions.WATER) && original;
+        return !SplashierWater.AFFECTS_ENTITY.test(potionContents) && original;
     }
 
     @Inject(method = "serverTick", at = @At(value = "INVOKE", target = "Ljava/util/Set;removeIf(Ljava/util/function/Predicate;)Z"))
     private void serverTick$block(ServerLevel serverLevel, CallbackInfo ci) {
-        if (!potionContents.is(Potions.WATER)) return;
-
-        AreaEffectCloud cloud = (AreaEffectCloud) (Object) this;
-        BlockPos.betweenClosedStream(cloud.getBoundingBox()).forEach(blockPos -> Util.dowseBlock(serverLevel, blockPos, cloud, getOwner()));
+        if (potionContents.is(PotionTags.DOUSES_FIRE)) {
+            AreaEffectCloud cloud = (AreaEffectCloud) (Object) this;
+            BlockPos.betweenClosedStream(cloud.getBoundingBox()).forEach(blockPos -> Util.douseBlock(serverLevel, blockPos, cloud, getOwner()));
+        }
     }
 }
